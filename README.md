@@ -5,10 +5,11 @@
 ## Разработка драйверов для смарт-терминала Эвотор
 
 Чтобы написать приложение-драйвер для Эвотор надо выполнить несколько простых шагов.
->*Здесь и далее по тексту все имена констант указаны из ru.evotor.devices.drivers.Constants.*
-Код снабжён комментриями, если что-то не понятно из описания ниже, то можно почитать javadoc в предстваленых исходниках.
+> Здесь и далее по тексту все имена констант указаны из ru.evotor.devices.drivers.Constants. Код снабжён комментриями, если что-то не понятно из описания ниже, то можно почитать javadoc в предстваленых исходниках.
 
-### 1. Подключить к своему проекту библиотеку для работы с оборудованием. Для этого в build.gradle проекта добавьте ссылку репозиторий `jitpack`:
+### 1. Подключить к своему проекту библиотеку для работы с оборудованием.
+
+Для этого в `build.gradle` проекта добавьте ссылку репозиторий jitpack:
 
 ```
 allprojects {
@@ -27,7 +28,8 @@ dependencies {
 }
 ```
 
-### 2. В AndroidManifest.xml приложения определите внешний сервис.
+### 2. В `AndroidManifest.xml` приложения определите внешний сервис.
+
 Для сервиса должен быть указан хотя бы однин из интент-фильтров `INTENT_FILTER_DRIVER_MANAGER` или `INTENT_FILTER_VIRTUAL_DRIVER_MANAGER`. 
 
 Пример объявленного сервиса:
@@ -64,55 +66,59 @@ dependencies {
 `INTENT_FILTER_DRIVER_MANAGER` - используется для драйверов, которые требуют для работы подключенное USB-оборудование. Вместе с этим необходимо указать для сервиса в meta-data характеристики VendorID и ProductID целевого устройства (десятичными числами):
 
 ```
-    <meta-data
-        android:name="usb_device"
-        android:value="VID_1659PID_8963" />
+<meta-data
+    android:name="usb_device"
+    android:value="VID_1659PID_8963" />
 ```
 
-При необходимости, можно указать несколько устройств следующимобразом: "VID_1659PID_8963|VID_123PID_456|VID_1659PID_8964".
+При необходимости, можно указать несколько устройств следующимобразом: `"VID_1659PID_8963|VID_123PID_456|VID_1659PID_8964"`.
+
 Экземпляр драйвера будет автоматически создан/удалён при подключении/отключении указанного оборудованиия в смарт-терминалу. При наличии нескольких подходящий драйверов пользователю будет предложен выбор.
 
 `INTENT_FILTER_VIRTUAL_DRIVER_MANAGER` - используется для драйверов, не требующих USB-оборудования (сетевое, bluetooth и др. ободрудование). Вместе с этим необходимо указать в meta-data, что драйвер является виртуальным:
 
 ```
-    <meta-data
-        android:name="virtual_device"
-        android:value="true" />
+<meta-data
+    android:name="virtual_device"
+    android:value="true" />
 ```
 
-Такой драйвер может быть создан только пользователем вречную через меню настройки оборудования.
+Такой драйвер может быть создан только пользователем вречную через меню настройки оборудования. В этом случае все работы подключению к нужному устройству берёт на себя производитель драйвера.
 
 Следующие интент-фильтры используются для реализии ролей устройства:
-`INTENT_FILTER_SCALES` - для весов
-`INTENT_FILTER_PRICE_PRINTER` - для принитеров ценников
-`INTENT_FILTER_PAY_SYSTEM` - для банковский терминалов
-`INTENT_FILTER_CASH_DRAWER` - для денежных ящиков
+
+`INTENT_FILTER_SCALES` - для весов,
+`INTENT_FILTER_PRICE_PRINTER` - для принитеров ценников,
+`INTENT_FILTER_PAY_SYSTEM` - для банковский терминалов,
+`INTENT_FILTER_CASH_DRAWER` - для денежных ящиков.
+
 Вместе с этим необходимо указать в meta-data категорию устройства:
 
 ```
-    <meta-data
-        android:name="device_categories"
-        android:value="SCALES" />
+<meta-data
+    android:name="device_categories"
+    android:value="SCALES" />
 ```
 
-`SCALES` - для весов
-`CASHDRAWER` - для принитеров ценников
-`PAYSYSTEM` - для банковский терминалов
-`PRICEPRINTER` - для денежных ящиков
-Можно указать сразу несколько категорий устройств следующим образом: "SCALES|PRICEPRINTER|CASHDRAWER"
+`SCALES` - для весов,
+`CASHDRAWER` - для принитеров ценников,
+`PAYSYSTEM` - для банковский терминалов,
+`PRICEPRINTER` - для денежных ящиков.
+
+Можно указать сразу несколько категорий устройств следующим образом: `"SCALES|PRICEPRINTER|CASHDRAWER"`.
 
 Для работы с USB-оборудованием, которое не подпадает ни под одну из указанных категорий, ни один из указанных интент-фильтров ролей не указывается, а категорию устройства необходимо задать как `OTHER`.
 		
-В манифесте приложения у сервиса должны быть указаны `android:icon` и `android:label` - картинка и имя драйвера (показывается пользователю).
+В манифесте приложения у сервиса должны быть указаны `android:icon` и `android:label` - картинка и имя драйвера (показывается пользователю). Картинку желательно делать квадратной, png без фона.
 
 ![Пример отображения иконки и имени драйвера](https://github.com/VedbeN/device-drivers/blob/master/icon_xmpl.png?raw=true "Пример отображения иконки и имени драйвера")
 
-Можно задать имя активити настроек, если оно требуется:
+Можно задать активити настроек, если оно требуется:
 
 ```
-    <meta-data
-        android:name="settings_activity"
-        android:value="ru.mycompany.drivers.MySettingsActivity" />
+<meta-data
+    android:name="settings_activity"
+    android:value="ru.mycompany.drivers.MySettingsActivity" />
 ```
 
 Указанная активити должна находиться в текущем package и будет вызвана при первом подключении устройства или по нажатию на строчку с оборудованием в меню настроек оборудования.
@@ -120,22 +126,27 @@ dependencies {
 Версия драйвера (`versionCode` и `versionName`) берётся из `build.gradle`:
 
 ```
-    defaultConfig {
-        applicationId "ru.mycompany.drivers.myscales"
-        minSdkVersion 22
-        targetSdkVersion 24
-        versionCode 2
-        versionName "1.0.1"
-    }
+defaultConfig {
+    applicationId "ru.mycompany.drivers.myscales"
+    minSdkVersion 22
+    targetSdkVersion 24
+    versionCode 2
+    versionName "1.0.1"
+}
 ```
 
 ### 3. В реализации метода подключения к сервису для всех указанных в интент-фильтрах action'ов укажите сответствующие Binder'ы:
 
 для `INTENT_FILTER_DRIVER_MANAGER` - класс наследник ru.evotor.devices.drivers.IUsbDriverManagerService.Stub,
+
 для `INTENT_FILTER_VIRTUAL_DRIVER_MANAGER` - класс наследник ru.evotor.devices.drivers.IVirtualDriverManagerService.Stub,
+
 для `INTENT_FILTER_SCALES` - класс наследник ru.evotor.devices.drivers.IScalesDriverService.Stub,
+
 для `INTENT_FILTER_PRICE_PRINTER` - класс наследник ru.evotor.devices.drivers.IPricePrinterDriverService.Stub,
+
 для `INTENT_FILTER_PAY_SYSTEM` - класс наследник ru.evotor.devices.drivers.IPaySystemDriverService.Stub,
+
 для `INTENT_FILTER_CASH_DRAWER` - класс наследник ru.evotor.devices.drivers.ICashDrawerDriverService.Stub.
 
 Например:
@@ -181,7 +192,7 @@ public class MyDeviceService extends Service {
 
 ### 4. Опишите указанные Binder'ы.
 
-Для всех опсываемых методов в случае невозможности выполнить требуемое действие (например, взвесить для метода getWeight) следует выбросить любой RuntimeException с тексовым человекочитаемым описанием проблемы.
+Для всех опсываемых методов в случае невозможности выполнить требуемое действие (например, взвесить для метода getWeight) следует выбросить любой RuntimeException с текстовым человекочитаемым описанием проблемы.
 
 #### `IUsbDriverManagerService.Stub` - класс для управления драйверами usb-устройств: подключение и отключение устройств происходят здесь. Надо реализовать методы `addUsbDevice` и `destroy`.
 
@@ -209,9 +220,13 @@ public class MyDriverManagerStub extends IUsbDriverManagerService.Stub {
 ```
 
 Метод `addUsbDevice` в `IUsbDriverManagerService` принимает на вход:
+
 1) `UsbDevice`, для которого он создан, 
+
 2) некоторый строковый идентификатор номера физического usb-порта (может потребоваться, например, если надо сохранить какие-либо настройки оборудования и восстановить их после перезагрузки терминала). В этот момент у приложения-драйвера уже есть permission для работы с этим устройством.
+
 Метод `addUsbDevice` возвращает номер экземпляра драйвера внутри приложения. По этому номеру будет происходить обращение к конкретному драйверу.
+
 Метод `destroy` в `IUsbDriverManagerService` принимает на вход номер экземпляра драйвера. Вызов этого метода уведомляет приложение об отключении от устройства. В этот момент у приложения-драйвера уже нет permission для работы с этим устройством, само устройство уже может быть удалено из смарт-терминала.
 
 
@@ -246,11 +261,15 @@ public class MyDriverManagerStub extends IVirtualDriverManagerService.Stub {
 ```
 
 Метод `addNewVirtualDevice` возвращает номер экземпляра драйвера внутри приложения. По этому номеру будет происходить обращение к конкретному драйверу.
+
 Метод `recreateNewVirtualDevice` принимает на вход номер экземпляра драйвера внутри приложения.
+
 Метод `destroy` принимает на вход номер экземпляра драйвера. Вызов этого метода уведомляет приложение об отключении от устройства.
 
 Для вновь созданного экземпляра драйвера (а виртуальные устройства могут создаваться только вручную пользователем через меню настроек оборудования) будет выван метод `addNewVirtualDevice`.
+
 Метод `recreateNewVirtualDevice` будет вызван для тех устройств, которые уже создавались пользователем ранее, но в даннй момент подключения к таким драйверам нет. Например, после перезагрузки смарт-терминала, перезапуска сервиса работы с оборудованием или обновления приложения-драйвера.
+
 Метод `destroy` будет вызван для устройства, которое пользователь вручную удалил из списка оборудования.
 
 #### `IScalesDriverService.Stub` - класс для работы с конкретными экземплярами весов. Надо реализовать метод `getWeight`.
@@ -276,10 +295,15 @@ public class MyScalesStub extends IScalesDriverService.Stub {
 ```
 
 Метод `getWeight` принимает на вход номер экземпляра драйвера (тот, который вернул `addUsbDevice` на прошлом шаге).
+
 Метод `getWeight` возвращает объект класса ru.evotor.devices.drivers.scales.Weight. В конструкторе требуется указать:
+
  1) `originalWeight` - считанный вес, в тех единицах измерения, в которых его вернули весы,
+ 
  2) `multiplierToGrams` - коэффициент для приведения веса в граммы,
+ 
  3) `supportStable` - поддерживают ли весы флаг стабильности,
+ 
  4) `stable` - флаг стабильности взвешивания, если поддерживается. Иначе - любое значение.
 
  
@@ -333,7 +357,8 @@ private class MyPricePrinterStub extends IPricePrinterDriverService.Stub {
     }
 }
 ```
-Перед печать группы ценников один вызывается метод beforePrintPrices, потом несколько раз может быть вызван метод printPrice (для каждого ценника), а после печати группы ценников - один раз afterPrintPrices.
+Перед печать группы ценников один вызывается метод `beforePrintPrices`, потом несколько раз может быть вызван метод printPrice (для каждого ценника), а после печати группы ценников - один раз afterPrintPrices.
+
 Все методы принимают на вход номер экзмпляра драйвера. Метод `printPrice` также принимает на вход параметры печатаемого ценника: название, цену, штрихкод и код товара.
  
 #### `IPaySystemDriverService.Stub` - класс для работы с конкретными экземплярами
@@ -426,6 +451,7 @@ public class MyPaySystemStub implements IPaySystemDriverService.Stub {
 ### 5. После того, как описаны все классы для взаимодействия с инфраструктурой смарт-терминала, можно описать сам класс работы с оборудованием:
 
 Например, для USB-весов это выглядит следующим образом:
+
 ```
 import ru.evotor.devices.drivers.scales.IScales;
 import ru.evotor.devices.drivers.scales.Weight;
@@ -452,9 +478,13 @@ public class MyDevice implements IScales {
 ```
 
 Для устройств других категорий надо реализовать соответсвенно интерфейсы:
+
 весы - ru.evotor.devices.drivers.scales.IScales,
+
 денежный ящик - ru.evotor.devices.drivers.cashdrawer.ICashDrawer,
+
 принтер ценников - ru.evotor.devices.drivers.priceprinter.IPricePrinter,
+
 банковский терминал - ru.evotor.devices.drivers.paysystem.IPaySystem.
 
 ### 6. Всё готово. Загрузите приложение на смарт-терминал, чтобы работать с Вашим драйвером.
