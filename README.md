@@ -481,6 +481,8 @@ public class MyPaySystemStub implements IPaySystemDriverService.Stub {
 }
 ```
 
+ * PayInfo - https://github.com/evotor/device-drivers/blob/master/app/src/main/java/ru/evotor/devices/drivers/paysystem/PayInfo.java
+
 Все методы принимают на вход номер экземпляра драйвера.
 
 Метод оплаты принимает на вход информацию об оплате (сумму), методы возврата и отмены дополнительно к этому принимают на вход `РРН` прошлой операции.
