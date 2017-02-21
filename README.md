@@ -396,6 +396,9 @@ private class MyPricePrinterStub extends IPricePrinterDriverService.Stub {
 
 #### `IPaySystemDriverService.Stub` - класс для работы с конкретными экземплярами
 
+
+ * PayInfo - https://github.com/evotor/device-drivers/blob/master/app/src/main/java/ru/evotor/devices/drivers/paysystem/PayInfo.java
+ 
 ```
 import ru.evotor.devices.drivers.IPaySystemDriverService;
 import ru.evotor.devices.drivers.paysystem.PayResult;
