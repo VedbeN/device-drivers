@@ -7,14 +7,15 @@
 
 * ### [SDK для Весов;](https://github.com/VedbeN/device-drivers/blob/master/Scales_SDK.md)
 
-* ### [SDK для Денежных Ящиков;](../device-drivers/blob/master/CashDrawer_SDK.md)
+* ### [SDK для Денежных Ящиков;]((https://github.com/VedbeN/device-drivers/blob/master/CashDrawer_SDK.md)
 
-* ### [SDK для Банковских Терминалов;](../device-drivers/blob/master/BankTerminals_SDK.md)
+* ### [SDK для Банковских Терминалов;]((https://github.com/VedbeN/device-drivers/blob/master/BankTerminals_SDK.md)
 
-* ### [SDK для Принтеров Ценников;](../device-drivers/blob/master/PricePrinter_SDK.md)
+* ### [SDK для Принтеров Ценников;]((https://github.com/VedbeN/device-drivers/blob/master/PricePrinter_SDK.md)
 
-* ### [SDK для других устройств работающих с USB-оборудованием.](../device-drivers/blob/master/OtherDevices_SDK.md)
+* ### [SDK для других устройств работающих с USB-оборудованием.]((https://github.com/VedbeN/device-drivers/blob/master/OtherDevices_SDK.md)
 
-* ### [Multi Descriptive SDK. Общее содержание. Initial Vesrion.](../device-drivers/blob/master/MultiDescriptive_SDK.md)
+* ### [Multi Descriptive SDK. Общее содержание. Initial Vesrion.]((https://github.com/VedbeN/device-drivers/blob/master/MultiDescriptive_SDK.md)
 
 -----
+###### Более подробную информацию по разрабатке своих решений для бизнеса на платформе Эвотор Вы можете найти пройдя по на нашем сайте для разработчиков: https://developer.evotor.ru/
