@@ -1,4 +1,4 @@
-<a name="004"></a>
+
 ## Разработка драйверов для смарт-терминала Эвотор
 
 #### 4. SDK для Принтеров Ценников;
@@ -85,35 +85,21 @@ dependencies {
 
 Такой драйвер может быть создан только пользователем вручную через меню настройки оборудования. В этом случае все работы по подключению к нужному устройству берёт на себя производитель драйвера.
 
-Следующие интент-фильтры используются для реализации ролей устройства:
-
-`INTENT_FILTER_SCALES` - для весов;
+Для реализации роли устройства используется следующий интент-фильтр:
 
 `INTENT_FILTER_PRICE_PRINTER` - для принтеров ценников;
-
-`INTENT_FILTER_PAY_SYSTEM` - для банковских терминалов;
-
-`INTENT_FILTER_CASH_DRAWER` - для денежных ящиков.
 
 Вместе с этим необходимо указать в `meta-data` категорию устройства:
 
 ```
 <meta-data
     android:name="device_categories"
-    android:value="SCALES" />
+    android:value="PRICEPRINTER" />
 ```
-
-`SCALES` - для весов;
-
-`CASHDRAWER` - для денежных ящиков;
-
-`PAYSYSTEM` - для банковских терминалов;
 
 `PRICEPRINTER` - для принтеров ценников.
 
 Можно указать сразу несколько категорий устройств следующим образом: `"SCALES|PRICEPRINTER|CASHDRAWER"`.
-
-Для работы с USB-оборудованием, которое не подпадает ни под одну из указанных категорий, ни один из этих интент-фильтров не указывается, а категорию устройства необходимо задать как `OTHER`.
 
 В манифесте приложения у сервиса должны быть указаны `android:icon` и `android:label` - картинка и имя драйвера (показывается пользователю). Картинку желательно делать квадратной, png без фона.
 
@@ -149,13 +135,7 @@ defaultConfig {
 
 для `INTENT_FILTER_VIRTUAL_DRIVER_MANAGER` - класс наследник `ru.evotor.devices.drivers.IVirtualDriverManagerService.Stub`;
 
-для `INTENT_FILTER_SCALES` - класс наследник `ru.evotor.devices.drivers.IScalesDriverService.Stub`;
-
 для `INTENT_FILTER_PRICE_PRINTER` - класс наследник `ru.evotor.devices.drivers.IPricePrinterDriverService.Stub`;
-
-для `INTENT_FILTER_PAY_SYSTEM` - класс наследник `ru.evotor.devices.drivers.IPaySystemDriverService.Stub`;
-
-для `INTENT_FILTER_CASH_DRAWER` - класс наследник `ru.evotor.devices.drivers.ICashDrawerDriverService.Stub`.
 
 Например:
 
@@ -201,6 +181,8 @@ public class MyDeviceService extends Service {
 ### 4. Опишите указанные Binder'ы.
 
 Для всех описываемых методов в случае невозможности выполнить требуемое действие (например, взвесить для метода `getWeight`) следует задействовать поддерживаемый `Exception` тип (с текстовым человекочитаемым описанием проблемы).
+
+<a //TODO: уточнить метод get для принтера этикеток >
 
 Поддерживаемые `Exception` типы:
 `BadParcelableException`;
@@ -292,62 +274,6 @@ public class MyDriverManagerStub extends IVirtualDriverManagerService.Stub {
 
 Метод `destroy` будет вызван для устройства, которое пользователь вручную удалил из списка оборудования.
 
-#### `IScalesDriverService.Stub` - класс для работы с конкретными экземплярами весов.  Требуется реализовать метод `getWeight`.
-
-```
-import ru.evotor.devices.drivers.IScalesDriverService;
-import ru.evotor.devices.drivers.scales.Weight;
-
-public class MyScalesStub extends IScalesDriverService.Stub {
-
-    private MyDeviceService myDeviceService;
-
-    public MyScalesStub(MyDeviceService myDeviceService) {
-        this.myDeviceService = myDeviceService;
-    }
-
-    @Override
-    public Weight getWeight(int instanceId) throws RemoteException {
-        return myDeviceService.getMyDevice(instanceId).getWeight();
-    }
-}
-
-```
-
-Метод `getWeight` принимает на вход номер экземпляра драйвера (тот, который вернул `addUsbDevice` на прошлом шаге).
-
-Метод `getWeight` возвращает объект класса `ru.evotor.devices.drivers.scales.Weight`. В конструкторе требуется указать:
-
- 1) `originalWeight` - считанный вес, в тех единицах измерения, в которых его вернули весы;
-
- 2) `multiplierToGrams` - коэффициент для приведения веса в граммы;
-
- 3) `supportStable` - поддерживают ли весы флаг стабильности;
-
- 4) `stable` - флаг стабильности взвешивания, если поддерживается. Иначе - любое значение.
-
-
-#### `ICashDrawerDriverService.Stub` - класс для работы с конкретными экземплярами денежных ящиков.
-
-```
-import ru.evotor.devices.drivers.ICashDrawerDriverService;
-
-private class MyCashDrawerStub extends ICashDrawerDriverService.Stub {
-
-    private MyDeviceService myDeviceService;
-
-    public MyCashDrawerStub(MyDeviceService myDeviceService) {
-        this.myDeviceService = myDeviceService;
-    }
-
-    @Override
-    public void openCashDrawer(int instanceId) throws RemoteException {
-        myDeviceService.getMyDevice(instanceId).openCashDrawer();
-    }
-}
-```
-Метод `openCashDrawer` принимает на вход номер экземпляра драйвера и открывает указанный денежный ящик.
-
 #### `IPricePrinterDriverService.Stub` - класс для работы с конкретными экземплярами
 
 ```
@@ -383,96 +309,7 @@ private class MyPricePrinterStub extends IPricePrinterDriverService.Stub {
 Все методы принимают на вход номер экземпляра драйвера. Метод `printPrice` также принимает на вход параметры печатаемого ценника: название, цену, штрихкод и код товара.
 
 
-#### `IPaySystemDriverService.Stub` - класс для работы с конкретными экземплярами
-
-```
-import ru.evotor.devices.drivers.IPaySystemDriverService;
-import ru.evotor.devices.drivers.paysystem.PayResult;
-import ru.evotor.devices.drivers.paysystem.PayInfo;
-
-public class MyPaySystemStub implements IPaySystemDriverService.Stub {
-
-    private MyDeviceService myDeviceService;
-
-    public MyPaySystemStub(MyDeviceService myDeviceService) {
-        this.myDeviceService = myDeviceService;
-    }
-
-    @Override
-    public PayResult payment(int instanceId, PayInfo payInfo) throws RemoteException {
-        return myDeviceService.getMyDevice(instanceId).payment(payInfo);
-    }
-
-    @Override
-    public PayResult cancelPayment(int instanceId, PayInfo payInfo, String rrn) throws RemoteException {
-        return myDeviceService.getMyDevice(instanceId).cancelPayment(payInfo, rrn);
-    }
-
-    @Override
-    public PayResult payback(int instanceId, PayInfo payInfo, String rrn) throws RemoteException {
-        return myDeviceService.getMyDevice(instanceId).payback(payInfo, rrn);
-    }
-
-    @Override
-    public PayResult cancelPayback(int instanceId, PayInfo payInfo, String rrn) throws RemoteException {
-        return myDeviceService.getMyDevice(instanceId).cancelPayback(payInfo, rrn);
-    }
-
-    @Override
-    public PayResult closeSession(int instanceId) throws RemoteException {
-        return myDeviceService.getMyDevice(instanceId).closeSession();
-    }
-
-    @Override
-    public void openServiceMenu(int instanceId) throws RemoteException {
-        myDeviceService.getMyDevice(instanceId).openServiceMenu();
-    }
-
-    @Override
-    public String getBankName(int instanceId) throws RemoteException {
-        return myDeviceService.getMyDevice(instanceId).getBankName();
-    }
-
-    @Override
-    public int getTerminalNumber(int instanceId) throws RemoteException {
-        return myDeviceService.getMyDevice(instanceId).getTerminalNumber();
-    }
-
-    @Override
-    public String getTerminalID(int instanceId) throws RemoteException {
-        return myDeviceService.getMyDevice(instanceId).getTerminalID();
-    }
-
-    @Override
-    public String getMerchNumber(int instanceId) throws RemoteException {
-        return myDeviceService.getMyDevice(instanceId).getMerchNumber();
-    }
-
-    @Override
-    public String getMerchCategoryCode(int instanceId) throws RemoteException {
-        return myDeviceService.getMyDevice(instanceId).String();
-    }
-
-    @Override
-    public String getMerchEngName(int instanceId) throws RemoteException {
-        return myDeviceService.getMyDevice(instanceId).getMerchEngName();
-    }
-
-    @Override
-    public String getCashier(int instanceId) throws RemoteException {
-        return myDeviceService.getMyDevice(instanceId).getCashier();
-    }
-
-    @Override
-    public String getServerIP(int instanceId) throws RemoteException {
-        return myDeviceService.getMyDevice(instanceId).getServerIP();
-    }
-}
-```
-
 Все методы принимают на вход номер экземпляра драйвера.
-
-Метод оплаты принимает на вход информацию об оплате (сумму), методы возврата и отмены дополнительно к этому принимают на вход `РРН` прошлой операции.
 
 ### 5. После того, как описаны все классы для взаимодействия с инфраструктурой смарт-терминала, можно описать сам класс работы с оборудованием:
 
@@ -512,3 +349,4 @@ public class MyDevice implements IScales {
 Загрузите приложение на смарт-терминал, чтобы работать с Вашим драйвером.
 
 -----
+###### Дополнительную информацию по разрабатке своих решений для бизнеса на платформе Эвотор, Вы можете найти на нашем сайте для разработчиков: https://developer.evotor.ru/
