@@ -4,8 +4,8 @@
 
 В этом проекте описаны все необходимые интерфейсы, константы и пр., необходимые для работы с оборудованием на смарт-терминале Эвотор и разработки собственных драйверов для него.
 
-[I'm a relative reference to a repository file](../blob/master/LICENSE)
-* ### [SDK для Весов;](../device-drivers/blob/master/Scales_SDK.md)
+
+* ### [SDK для Весов;](https://github.com/VedbeN/device-drivers/blob/master/Scales_SDK.md)
 
 * ### [SDK для Денежных Ящиков;](../device-drivers/blob/master/CashDrawer_SDK.md)
 
