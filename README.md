@@ -15,7 +15,7 @@
 
 * ### [SDK для других устройств работающих с USB-оборудованием.](https://github.com/VedbeN/device-drivers/blob/master/OtherDevices_SDK.md)
 
-* ### [Multi Descriptive SDK. Общее содержание. Initial Vesrion.](https://github.com/VedbeN/device-drivers/blob/master/MultiDescriptive_SDK.md)
+* ### [Multi Descriptive SDK. Общее содержание. Initial SDK Version.](https://github.com/VedbeN/device-drivers/blob/master/MultiDescriptive_SDK.md)
 
 -----
-###### Более подробную информацию по разрабатке своих решений для бизнеса на платформе Эвотор Вы можете найти пройдя по на нашем сайте для разработчиков: https://developer.evotor.ru/
+###### Более подробную информацию по разрабатке своих решений для бизнеса на платформе Эвотор, Вы можете найти на нашем сайте для разработчиков: https://developer.evotor.ru/
