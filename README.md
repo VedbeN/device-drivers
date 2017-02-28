@@ -4,7 +4,6 @@
 
 В этом проекте описаны все необходимые интерфейсы, константы и пр., необходимые для работы с оборудованием на смарт-терминале Эвотор и разработки собственных драйверов для него.
 
-
 * #### [SDK для Весов;](#001)
 
 * #### [SDK для Денежных Ящиков;](#002)
@@ -15,20 +14,22 @@
 
 * #### [SDK для других устройств работающих с USB-оборудованием.](#005)
 
-------
+//TODO: Перенести описание по девайсам в отдельные файлы и проапдейтить зависимые URL к ним (т.е. вместо #001 - URL на фаил).
 
-
+-----
+<a name="001"></a>
 ## Разработка драйверов для смарт-терминала Эвотор
 
-<a name="001"></a>
 #### 1. SDK для Весов;
 
 Для написания приложения-драйвера для Эвотор, требуется выполнить несколько простых шагов.
-> Здесь и далее по тексту все имена констант указаны из ru.evotor.devices.drivers.Constants. 
+> Здесь и далее по тексту все имена констант указаны из ru.evotor.devices.drivers.Constants.
 
 ### 1. Подключить к своему проекту библиотеку для работы с оборудованием.
 
 Для этого в `build.gradle` проекта добавьте ссылку репозиторий jitpack:
+
+//TODO: Добавить ссылку на детали по модулю  `build.gradle`.
 
 ```
 allprojects {
@@ -49,7 +50,7 @@ dependencies {
 
 ### 2. Определите внешний сервис в `AndroidManifest.xml` приложения.
 
-Для сервиса должен быть указан хотя бы один из интент-фильтров `INTENT_FILTER_DRIVER_MANAGER` или `INTENT_FILTER_VIRTUAL_DRIVER_MANAGER`. 
+Для сервиса должен быть указан хотя бы один из интент-фильтров `INTENT_FILTER_DRIVER_MANAGER` или `INTENT_FILTER_VIRTUAL_DRIVER_MANAGER`.
 
 Пример объявленного сервиса:
 
@@ -81,7 +82,7 @@ dependencies {
         android:value="SCALES" />
 </service>
 ```  
-  
+
 `INTENT_FILTER_DRIVER_MANAGER` - используется для драйверов, которые требуют для работы подключенное USB-оборудование. Вместе с этим необходимо указать для сервиса в `meta-data` характеристики VendorID и ProductID целевого устройства (десятичными числами):
 
 ```
@@ -124,7 +125,7 @@ dependencies {
 
 `SCALES` - для весов;
 
-Можно указать сразу несколько категорий устройств следующим образом: `"SCALES|PRICEPRINTER|CASHDRAWER"`.
+Можно указать сразу несколько категорий устройств следующим образом, пример: `"SCALES|PRICEPRINTER|CASHDRAWER"`.
 
 В манифесте приложения у сервиса должны быть указаны `android:icon` и `android:label` - картинка и имя драйвера (показывается пользователю). Картинку желательно делать квадратной, png без фона.
 
@@ -189,7 +190,7 @@ public class MyDeviceService extends Service {
                 return null;
         }
     }
-	
+
     public int createNewDevice(UsbDevice usbDevice) {
         int currentIndex = newDeviceIndex.getAndIncrement();
         instances.put(currentIndex, new MyDevice(getApplicationContext(), usbDevice));
@@ -199,7 +200,7 @@ public class MyDeviceService extends Service {
     public MyDevice getMyDevice(int instanceId) {
         return instances.get(instanceId);
     }
-	
+
     public void destroy(int instanceId) {
 		getMyDevice(instanceId).destroy();
         instances.remove(instanceId);
@@ -209,6 +210,8 @@ public class MyDeviceService extends Service {
 
 В этом же сервисе удобно определить `Map` для хранения списка активных экземпляров драйверов (а их, потенциально, может быть больше, чем 1 в системе одновременно), т.к. обращаться к нему придётся из всех указанных Stub'ов.
 
+  //TODO: нужна ссылка на детали по `Map`. 
+  
 ### 4. Опишите указанные Binder'ы.
 
 Для всех описываемых методов в случае невозможности выполнить требуемое действие (например, взвесить для метода `getWeight`) следует задействовать поддерживаемый `Exception` тип (с текстовым человекочитаемым описанием проблемы).
@@ -250,16 +253,16 @@ public class MyDriverManagerStub extends IUsbDriverManagerService.Stub {
 
 Метод `addUsbDevice` в `IUsbDriverManagerService` принимает на вход:
 
-1) `UsbDevice`, для которого он создан; 
+1) `UsbDevice`, для которого он создан;
 
-2) некоторый строковый идентификатор номера физического usb-порта (может потребоваться, например, если  требуется сохранить какие-либо настройки оборудования и восстановить их после перезагрузки терминала). В этот момент у приложения-драйвера уже есть `permission` для работы с этим устройством.
+2) некоторый строковый идентификатор номера физического usb-порта (может потребоваться, например, если  есть необходимость сохранить какие-либо настройки оборудования и восстановить их после перезагрузки терминала). В этот момент у приложения-драйвера уже есть `permission` для работы с этим устройством.
 
 Метод `addUsbDevice` возвращает номер экземпляра драйвера внутри приложения. По этому номеру будет происходить обращение к конкретному драйверу.
 
 Метод `destroy` в `IUsbDriverManagerService` принимает на вход номер экземпляра драйвера. Вызов этого метода уведомляет приложение об отключении от устройства. В этот момент у приложения-драйвера уже нет `permission` для работы с этим устройством, само устройство уже может быть удалено из смарт-терминала.
 
 
-#### `IVirtualDriverManagerService.Stub` - класс для управления драйверами виртуальных устройств: 
+#### `IVirtualDriverManagerService.Stub` - класс для управления драйверами виртуальных устройств:
 подключение и отключение устройств происходят здесь. Требуется реализовать методы `addNewVirtualDevice`, `recreateNewVirtualDevice` и `destroy`.
 
 ```
@@ -283,7 +286,7 @@ public class MyDriverManagerStub extends IVirtualDriverManagerService.Stub {
     public void recreateNewVirtualDevice(int instanceId) throws RemoteException {
         myDeviceService.recreateNewVirtualDevice(instanceId);
     }
-	
+
     @Override
     public void destroy(int i) throws RemoteException {
         myDeviceService.destroy(instanceId);
@@ -316,7 +319,7 @@ public class MyScalesStub extends IScalesDriverService.Stub {
     public MyScalesStub(MyDeviceService myDeviceService) {
         this.myDeviceService = myDeviceService;
     }
-	
+
     @Override
     public Weight getWeight(int instanceId) throws RemoteException {
         return myDeviceService.getMyDevice(instanceId).getWeight();
@@ -330,14 +333,14 @@ public class MyScalesStub extends IScalesDriverService.Stub {
 Метод `getWeight` возвращает объект класса `ru.evotor.devices.drivers.scales.Weight`. В конструкторе требуется указать:
 
  1) `originalWeight` - считанный вес, в тех единицах измерения, в которых его вернули весы;
- 
+
  2) `multiplierToGrams` - коэффициент для приведения веса в граммы;
- 
+
  3) `supportStable` - поддерживают ли весы флаг стабильности;
- 
+
  4) `stable` - флаг стабильности взвешивания, если поддерживается. Иначе - любое значение.
 
- 
+
 #### `ICashDrawerDriverService.Stub` - класс для работы с конкретными экземплярами денежных ящиков.
 
 ```
@@ -367,7 +370,7 @@ import ru.evotor.devices.drivers.IPricePrinterDriverService;
 private class MyPricePrinterStub extends IPricePrinterDriverService.Stub {
 
     private MyDeviceService myDeviceService;
-	
+
     public MyPricePrinterStub(MyDeviceService myDeviceService) {
         this.myDeviceService = myDeviceService;
     }
@@ -392,13 +395,13 @@ private class MyPricePrinterStub extends IPricePrinterDriverService.Stub {
 Перед печатью группы ценников один раз вызывается метод `beforePrintPrices`, потом несколько раз может быть вызван метод `printPrice` (для каждого ценника), а после печати группы ценников - один раз `afterPrintPrices`.
 
 Все методы принимают на вход номер экземпляра драйвера. Метод `printPrice` также принимает на вход параметры печатаемого ценника: название, цену, штрихкод и код товара.
- 
+
 
 #### `IPaySystemDriverService.Stub` - класс для работы с конкретными экземплярами
 
 
  * PayInfo - https://github.com/evotor/device-drivers/blob/master/app/src/main/java/ru/evotor/devices/drivers/paysystem/PayInfo.java
- 
+
 ```
 import ru.evotor.devices.drivers.IPaySystemDriverService;
 import ru.evotor.devices.drivers.paysystem.PayResult;
@@ -489,7 +492,7 @@ public class MyPaySystemStub implements IPaySystemDriverService.Stub {
 Все методы принимают на вход номер экземпляра драйвера.
 
 Метод оплаты принимает на вход информацию об оплате (сумму), методы возврата и отмены дополнительно к этому принимают на вход `РРН` прошлой операции.
-   
+
 ### 5. После того, как описаны все классы для взаимодействия с инфраструктурой смарт-терминала, можно описать сам класс работы с оборудованием:
 
 Например, для USB-весов это выглядит следующим образом:
@@ -511,7 +514,7 @@ public class MyDevice implements IScales {
 
 	public void destroy(){
 	}
-	
+
     @Override
     public Weight getWeight() {
         //TODO Ваш код запроса веса
@@ -523,19 +526,19 @@ public class MyDevice implements IScales {
 
 Весы - `ru.evotor.devices.drivers.scales.IScales`;
 
-### 6. Всё готово. 
+### 6. Всё готово.
 
 Загрузите приложение на смарт-терминал, чтобы работать с Вашим драйвером.
 
 -----
 
+<a name="002"></a>
 ## Разработка драйверов для смарт-терминала Эвотор
 
-<a name="002"></a>
 #### 2. SDK для Денежных Ящиков;
 
 Для написания приложения-драйвера для Эвотор, требуется выполнить несколько простых шагов.
-> Здесь и далее по тексту все имена констант указаны из ru.evotor.devices.drivers.Constants. 
+> Здесь и далее по тексту все имена констант указаны из ru.evotor.devices.drivers.Constants.
 
 ### 1. Подключить к своему проекту библиотеку для работы с оборудованием.
 
@@ -560,7 +563,7 @@ dependencies {
 
 ### 2. Определите внешний сервис в `AndroidManifest.xml` приложения.
 
-Для сервиса должен быть указан хотя бы один из интент-фильтров `INTENT_FILTER_DRIVER_MANAGER` или `INTENT_FILTER_VIRTUAL_DRIVER_MANAGER`. 
+Для сервиса должен быть указан хотя бы один из интент-фильтров `INTENT_FILTER_DRIVER_MANAGER` или `INTENT_FILTER_VIRTUAL_DRIVER_MANAGER`.
 
 Пример объявленного сервиса:
 
@@ -592,7 +595,7 @@ dependencies {
         android:value="SCALES" />
 </service>
 ```  
-  
+
 `INTENT_FILTER_DRIVER_MANAGER` - используется для драйверов, которые требуют для работы подключенное USB-оборудование. Вместе с этим необходимо указать для сервиса в `meta-data` характеристики VendorID и ProductID целевого устройства (десятичными числами):
 
 ```
@@ -694,7 +697,7 @@ public class MyDeviceService extends Service {
                 return null;
         }
     }
-	
+
     public int createNewDevice(UsbDevice usbDevice) {
         int currentIndex = newDeviceIndex.getAndIncrement();
         instances.put(currentIndex, new MyDevice(getApplicationContext(), usbDevice));
@@ -704,7 +707,7 @@ public class MyDeviceService extends Service {
     public MyDevice getMyDevice(int instanceId) {
         return instances.get(instanceId);
     }
-	
+
     public void destroy(int instanceId) {
 		getMyDevice(instanceId).destroy();
         instances.remove(instanceId);
@@ -755,7 +758,7 @@ public class MyDriverManagerStub extends IUsbDriverManagerService.Stub {
 
 Метод `addUsbDevice` в `IUsbDriverManagerService` принимает на вход:
 
-1) `UsbDevice`, для которого он создан; 
+1) `UsbDevice`, для которого он создан;
 
 2) некоторый строковый идентификатор номера физического usb-порта (может потребоваться, например, если  требуется сохранить какие-либо настройки оборудования и восстановить их после перезагрузки терминала). В этот момент у приложения-драйвера уже есть `permission` для работы с этим устройством.
 
@@ -764,7 +767,7 @@ public class MyDriverManagerStub extends IUsbDriverManagerService.Stub {
 Метод `destroy` в `IUsbDriverManagerService` принимает на вход номер экземпляра драйвера. Вызов этого метода уведомляет приложение об отключении от устройства. В этот момент у приложения-драйвера уже нет `permission` для работы с этим устройством, само устройство уже может быть удалено из смарт-терминала.
 
 
-#### `IVirtualDriverManagerService.Stub` - класс для управления драйверами виртуальных устройств: 
+#### `IVirtualDriverManagerService.Stub` - класс для управления драйверами виртуальных устройств:
 подключение и отключение устройств происходят здесь. Требуется реализовать методы `addNewVirtualDevice`, `recreateNewVirtualDevice` и `destroy`.
 
 ```
@@ -788,7 +791,7 @@ public class MyDriverManagerStub extends IVirtualDriverManagerService.Stub {
     public void recreateNewVirtualDevice(int instanceId) throws RemoteException {
         myDeviceService.recreateNewVirtualDevice(instanceId);
     }
-	
+
     @Override
     public void destroy(int i) throws RemoteException {
         myDeviceService.destroy(instanceId);
@@ -821,7 +824,7 @@ public class MyScalesStub extends IScalesDriverService.Stub {
     public MyScalesStub(MyDeviceService myDeviceService) {
         this.myDeviceService = myDeviceService;
     }
-	
+
     @Override
     public Weight getWeight(int instanceId) throws RemoteException {
         return myDeviceService.getMyDevice(instanceId).getWeight();
@@ -835,14 +838,14 @@ public class MyScalesStub extends IScalesDriverService.Stub {
 Метод `getWeight` возвращает объект класса `ru.evotor.devices.drivers.scales.Weight`. В конструкторе требуется указать:
 
  1) `originalWeight` - считанный вес, в тех единицах измерения, в которых его вернули весы;
- 
+
  2) `multiplierToGrams` - коэффициент для приведения веса в граммы;
- 
+
  3) `supportStable` - поддерживают ли весы флаг стабильности;
- 
+
  4) `stable` - флаг стабильности взвешивания, если поддерживается. Иначе - любое значение.
 
- 
+
 #### `ICashDrawerDriverService.Stub` - класс для работы с конкретными экземплярами денежных ящиков.
 
 ```
@@ -872,7 +875,7 @@ import ru.evotor.devices.drivers.IPricePrinterDriverService;
 private class MyPricePrinterStub extends IPricePrinterDriverService.Stub {
 
     private MyDeviceService myDeviceService;
-	
+
     public MyPricePrinterStub(MyDeviceService myDeviceService) {
         this.myDeviceService = myDeviceService;
     }
@@ -897,7 +900,7 @@ private class MyPricePrinterStub extends IPricePrinterDriverService.Stub {
 Перед печатью группы ценников один раз вызывается метод `beforePrintPrices`, потом несколько раз может быть вызван метод `printPrice` (для каждого ценника), а после печати группы ценников - один раз `afterPrintPrices`.
 
 Все методы принимают на вход номер экземпляра драйвера. Метод `printPrice` также принимает на вход параметры печатаемого ценника: название, цену, штрихкод и код товара.
- 
+
 
 #### `IPaySystemDriverService.Stub` - класс для работы с конкретными экземплярами
 
@@ -989,7 +992,7 @@ public class MyPaySystemStub implements IPaySystemDriverService.Stub {
 Все методы принимают на вход номер экземпляра драйвера.
 
 Метод оплаты принимает на вход информацию об оплате (сумму), методы возврата и отмены дополнительно к этому принимают на вход `РРН` прошлой операции.
-   
+
 ### 5. После того, как описаны все классы для взаимодействия с инфраструктурой смарт-терминала, можно описать сам класс работы с оборудованием:
 
 Например, для USB-весов это выглядит следующим образом:
@@ -1011,7 +1014,7 @@ public class MyDevice implements IScales {
 
 	public void destroy(){
 	}
-	
+
     @Override
     public Weight getWeight() {
         //TODO Ваш код запроса веса
@@ -1023,20 +1026,20 @@ public class MyDevice implements IScales {
 
 Денежный ящик - `ru.evotor.devices.drivers.cashdrawer.ICashDrawer`;
 
-### 6. Всё готово. 
+### 6. Всё готово.
 
 Загрузите приложение на смарт-терминал, чтобы работать с Вашим драйвером.
 
-------------
-
-## Разработка драйверов для смарт-терминала Эвотор
+-----
 
 <a name="003"></a>
+## Разработка драйверов для смарт-терминала Эвотор
+
 #### 3. SDK для Банковских Терминалов;
 
 Для написания приложения-драйвера для Эвотор, требуется выполнить несколько простых шагов.
 
-> Здесь и далее по тексту все имена констант указаны из ru.evotor.devices.drivers.Constants. 
+> Здесь и далее по тексту все имена констант указаны из ru.evotor.devices.drivers.Constants.
 
 ### 1. Подключить к своему проекту библиотеку для работы с оборудованием.
 
@@ -1061,7 +1064,7 @@ dependencies {
 
 ### 2. Определите внешний сервис в `AndroidManifest.xml` приложения.
 
-Для сервиса должен быть указан хотя бы один из интент-фильтров `INTENT_FILTER_DRIVER_MANAGER` или `INTENT_FILTER_VIRTUAL_DRIVER_MANAGER`. 
+Для сервиса должен быть указан хотя бы один из интент-фильтров `INTENT_FILTER_DRIVER_MANAGER` или `INTENT_FILTER_VIRTUAL_DRIVER_MANAGER`.
 
 Пример объявленного сервиса:
 
@@ -1093,7 +1096,7 @@ dependencies {
         android:value="SCALES" />
 </service>
 ```  
-  
+
 `INTENT_FILTER_DRIVER_MANAGER` - используется для драйверов, которые требуют для работы подключенное USB-оборудование. Вместе с этим необходимо указать для сервиса в `meta-data` характеристики VendorID и ProductID целевого устройства (десятичными числами):
 
 ```
@@ -1134,6 +1137,8 @@ dependencies {
 
 В манифесте приложения у сервиса должны быть указаны `android:icon` и `android:label` - картинка и имя драйвера (показывается пользователю). Картинку желательно делать квадратной, png без фона.
 
+  //TODO: нужен пример с банковским терминалом.
+  
 ![Пример отображения иконки и имени драйвера](https://github.com/VedbeN/device-drivers/blob/master/icon_xmpl.png?raw=true "Пример отображения иконки и имени драйвера")
 
 Можно задать `activity`  настроек, если это требуется:
@@ -1160,63 +1165,28 @@ defaultConfig {
 
 `MinSdkVersion` должна быть не выше версии 22!
 
-### 3. В реализации метода подключения к сервису для всех `action` указанных в интент-фильтрах укажите соответствующие Binder'ы:
+### 3. В реализации метода подключения к сервису для всех `action` указанных в интент-фильтрах укажите соответствующий Binder'ы:
 
 для `INTENT_FILTER_DRIVER_MANAGER` - класс наследник `ru.evotor.devices.drivers.IUsbDriverManagerService.Stub`;
 
 для `INTENT_FILTER_VIRTUAL_DRIVER_MANAGER` - класс наследник `ru.evotor.devices.drivers.IVirtualDriverManagerService.Stub`;
 
-для `INTENT_FILTER_SCALES` - класс наследник `ru.evotor.devices.drivers.IScalesDriverService.Stub`;
-
-для `INTENT_FILTER_PRICE_PRINTER` - класс наследник `ru.evotor.devices.drivers.IPricePrinterDriverService.Stub`;
-
 для `INTENT_FILTER_PAY_SYSTEM` - класс наследник `ru.evotor.devices.drivers.IPaySystemDriverService.Stub`;
-
-для `INTENT_FILTER_CASH_DRAWER` - класс наследник `ru.evotor.devices.drivers.ICashDrawerDriverService.Stub`.
 
 Например:
 
+  //TODO: нужен пример с банковским терминалом.
+  
 ```
-public class MyDeviceService extends Service {
 
-    private final Map<Integer, MyDevice> instances = new HashMap<>();
-    private volatile AtomicInteger newDeviceIndex = new AtomicInteger(0);
-
-    @Nullable
-    @Override
-    public IBinder onBind(Intent intent) {
-        String action = intent.getAction();
-        switch (action) {
-            case Constants.INTENT_FILTER_DRIVER_MANAGER:
-                return new MyDriverManagerStub(MyDeviceService.this);
-            case Constants.INTENT_FILTER_SCALES:
-                return new MyScalesStub(MyDeviceService.this);
-            default:
-                return null;
-        }
-    }
-	
-    public int createNewDevice(UsbDevice usbDevice) {
-        int currentIndex = newDeviceIndex.getAndIncrement();
-        instances.put(currentIndex, new MyDevice(getApplicationContext(), usbDevice));
-        return currentIndex;
-    }
-
-    public MyDevice getMyDevice(int instanceId) {
-        return instances.get(instanceId);
-    }
-	
-    public void destroy(int instanceId) {
-		getMyDevice(instanceId).destroy();
-        instances.remove(instanceId);
-    }
-}
 ```
 
 В этом же сервисе удобно определить `Map` для хранения списка активных экземпляров драйверов (а их, потенциально, может быть больше, чем 1 в системе одновременно), т.к. обращаться к нему придётся из всех указанных Stub'ов.
 
 ### 4. Опишите указанные Binder'ы.
 
+  //TODO: нужен пример с банковским терминалом.
+  
 Для всех описываемых методов в случае невозможности выполнить требуемое действие (например, взвесить для метода `getWeight`) следует задействовать поддерживаемый `Exception` тип (с текстовым человекочитаемым описанием проблемы).
 
 Поддерживаемые `Exception` типы:
@@ -1256,7 +1226,7 @@ public class MyDriverManagerStub extends IUsbDriverManagerService.Stub {
 
 Метод `addUsbDevice` в `IUsbDriverManagerService` принимает на вход:
 
-1) `UsbDevice`, для которого он создан; 
+1) `UsbDevice`, для которого он создан;
 
 2) некоторый строковый идентификатор номера физического usb-порта (может потребоваться, например, если  требуется сохранить какие-либо настройки оборудования и восстановить их после перезагрузки терминала). В этот момент у приложения-драйвера уже есть `permission` для работы с этим устройством.
 
@@ -1265,7 +1235,7 @@ public class MyDriverManagerStub extends IUsbDriverManagerService.Stub {
 Метод `destroy` в `IUsbDriverManagerService` принимает на вход номер экземпляра драйвера. Вызов этого метода уведомляет приложение об отключении от устройства. В этот момент у приложения-драйвера уже нет `permission` для работы с этим устройством, само устройство уже может быть удалено из смарт-терминала.
 
 
-#### `IVirtualDriverManagerService.Stub` - класс для управления драйверами виртуальных устройств: 
+#### `IVirtualDriverManagerService.Stub` - класс для управления драйверами виртуальных устройств:
 подключение и отключение устройств происходят здесь. Требуется реализовать методы `addNewVirtualDevice`, `recreateNewVirtualDevice` и `destroy`.
 
 ```
@@ -1289,7 +1259,7 @@ public class MyDriverManagerStub extends IVirtualDriverManagerService.Stub {
     public void recreateNewVirtualDevice(int instanceId) throws RemoteException {
         myDeviceService.recreateNewVirtualDevice(instanceId);
     }
-	
+
     @Override
     public void destroy(int i) throws RemoteException {
         myDeviceService.destroy(instanceId);
@@ -1308,97 +1278,6 @@ public class MyDriverManagerStub extends IVirtualDriverManagerService.Stub {
 Метод `recreateNewVirtualDevice` будет вызван для тех устройств, которые уже создавались пользователем ранее, но в данный момент подключения к таким драйверам нет. Например, после перезагрузки смарт-терминала, перезапуска сервиса работы с оборудованием или обновления приложения-драйвера.
 
 Метод `destroy` будет вызван для устройства, которое пользователь вручную удалил из списка оборудования.
-
-#### `IScalesDriverService.Stub` - класс для работы с конкретными экземплярами весов.  Требуется реализовать метод `getWeight`.
-
-```
-import ru.evotor.devices.drivers.IScalesDriverService;
-import ru.evotor.devices.drivers.scales.Weight;
-
-public class MyScalesStub extends IScalesDriverService.Stub {
-
-    private MyDeviceService myDeviceService;
-
-    public MyScalesStub(MyDeviceService myDeviceService) {
-        this.myDeviceService = myDeviceService;
-    }
-	
-    @Override
-    public Weight getWeight(int instanceId) throws RemoteException {
-        return myDeviceService.getMyDevice(instanceId).getWeight();
-    }
-}
-
-```
-
-Метод `getWeight` принимает на вход номер экземпляра драйвера (тот, который вернул `addUsbDevice` на прошлом шаге).
-
-Метод `getWeight` возвращает объект класса `ru.evotor.devices.drivers.scales.Weight`. В конструкторе требуется указать:
-
- 1) `originalWeight` - считанный вес, в тех единицах измерения, в которых его вернули весы;
- 
- 2) `multiplierToGrams` - коэффициент для приведения веса в граммы;
- 
- 3) `supportStable` - поддерживают ли весы флаг стабильности;
- 
- 4) `stable` - флаг стабильности взвешивания, если поддерживается. Иначе - любое значение.
-
- 
-#### `ICashDrawerDriverService.Stub` - класс для работы с конкретными экземплярами денежных ящиков.
-
-```
-import ru.evotor.devices.drivers.ICashDrawerDriverService;
-
-private class MyCashDrawerStub extends ICashDrawerDriverService.Stub {
-
-    private MyDeviceService myDeviceService;
-
-    public MyCashDrawerStub(MyDeviceService myDeviceService) {
-        this.myDeviceService = myDeviceService;
-    }
-
-    @Override
-    public void openCashDrawer(int instanceId) throws RemoteException {
-        myDeviceService.getMyDevice(instanceId).openCashDrawer();
-    }
-}
-```
-Метод `openCashDrawer` принимает на вход номер экземпляра драйвера и открывает указанный денежный ящик.
-
-#### `IPricePrinterDriverService.Stub` - класс для работы с конкретными экземплярами
-
-```
-import ru.evotor.devices.drivers.IPricePrinterDriverService;
-
-private class MyPricePrinterStub extends IPricePrinterDriverService.Stub {
-
-    private MyDeviceService myDeviceService;
-	
-    public MyPricePrinterStub(MyDeviceService myDeviceService) {
-        this.myDeviceService = myDeviceService;
-    }
-
-    @Override
-    public void beforePrintPrices(int instanceId) throws RemoteException {
-        myDeviceService.getMyDevice(instanceId).beforePrintPrices();
-    }
-
-    @Override
-    public void printPrice(int instanceId, String name, String price, String barcode, String code) throws RemoteException {
-        myDeviceService.getMyDevice(instanceId).printPrice(name, price, barcode, code);
-    }
-
-    @Override
-    public void afterPrintPrices(int instanceId) throws RemoteException {
-        myDeviceService.getMyDevice(instanceId).afterPrintPrices();
-    }
-}
-```
-
-Перед печатью группы ценников один раз вызывается метод `beforePrintPrices`, потом несколько раз может быть вызван метод `printPrice` (для каждого ценника), а после печати группы ценников - один раз `afterPrintPrices`.
-
-Все методы принимают на вход номер экземпляра драйвера. Метод `printPrice` также принимает на вход параметры печатаемого ценника: название, цену, штрихкод и код товара.
- 
 
 #### `IPaySystemDriverService.Stub` - класс для работы с конкретными экземплярами
 
@@ -1490,54 +1369,34 @@ public class MyPaySystemStub implements IPaySystemDriverService.Stub {
 Все методы принимают на вход номер экземпляра драйвера.
 
 Метод оплаты принимает на вход информацию об оплате (сумму), методы возврата и отмены дополнительно к этому принимают на вход `РРН` прошлой операции.
-   
+
+  //TODO: нужна ссылка на детали по тому, что такое `РРН`. 
+
 ### 5. После того, как описаны все классы для взаимодействия с инфраструктурой смарт-терминала, можно описать сам класс работы с оборудованием:
 
-Например, для USB-весов это выглядит следующим образом:
+  //TODO: нужен пример с банковским терминалом.
+Для банковских терминалов это выглядит следующим образом:
 
 ```
-import ru.evotor.devices.drivers.scales.IScales;
-import ru.evotor.devices.drivers.scales.Weight;
 
-public class MyDevice implements IScales {
-
-    private Context context;
-    private UsbDevice usbDevice;
-
-    public MyDevice(Context context, UsbDevice usbDevice) {
-        super();
-        this.context = context;
-        this.usbDevice = usbDevice;
-    }
-
-	public void destroy(){
-	}
-	
-    @Override
-    public Weight getWeight() {
-        //TODO Ваш код запроса веса
-    }
-}
 ```
 
-Для устройств других категорий требуется реализовать соответствующие интерфейсы:
+Интерфейс для банковских терминалов - `ru.evotor.devices.drivers.paysystem.IPaySystem`.
 
-Банковский терминал - `ru.evotor.devices.drivers.paysystem.IPaySystem`.
-
-### 6. Всё готово. 
+### 6. Всё готово.
 
 Загрузите приложение на смарт-терминал, чтобы работать с Вашим драйвером.
 
-
-------
-## Разработка драйверов для смарт-терминала Эвотор
+-----
 
 <a name="004"></a>
+## Разработка драйверов для смарт-терминала Эвотор
+
 #### 4. SDK для Принтеров Ценников;
 
 
 Для написания приложения-драйвера для Эвотор, требуется выполнить несколько простых шагов.
-> Здесь и далее по тексту все имена констант указаны из ru.evotor.devices.drivers.Constants. 
+> Здесь и далее по тексту все имена констант указаны из ru.evotor.devices.drivers.Constants.
 
 ### 1. Подключить к своему проекту библиотеку для работы с оборудованием.
 
@@ -1562,7 +1421,7 @@ dependencies {
 
 ### 2. Определите внешний сервис в `AndroidManifest.xml` приложения.
 
-Для сервиса должен быть указан хотя бы один из интент-фильтров `INTENT_FILTER_DRIVER_MANAGER` или `INTENT_FILTER_VIRTUAL_DRIVER_MANAGER`. 
+Для сервиса должен быть указан хотя бы один из интент-фильтров `INTENT_FILTER_DRIVER_MANAGER` или `INTENT_FILTER_VIRTUAL_DRIVER_MANAGER`.
 
 Пример объявленного сервиса:
 
@@ -1594,7 +1453,7 @@ dependencies {
         android:value="SCALES" />
 </service>
 ```  
-  
+
 `INTENT_FILTER_DRIVER_MANAGER` - используется для драйверов, которые требуют для работы подключенное USB-оборудование. Вместе с этим необходимо указать для сервиса в `meta-data` характеристики VendorID и ProductID целевого устройства (десятичными числами):
 
 ```
@@ -1646,7 +1505,7 @@ dependencies {
 Можно указать сразу несколько категорий устройств следующим образом: `"SCALES|PRICEPRINTER|CASHDRAWER"`.
 
 Для работы с USB-оборудованием, которое не подпадает ни под одну из указанных категорий, ни один из этих интент-фильтров не указывается, а категорию устройства необходимо задать как `OTHER`.
-		
+
 В манифесте приложения у сервиса должны быть указаны `android:icon` и `android:label` - картинка и имя драйвера (показывается пользователю). Картинку желательно делать квадратной, png без фона.
 
 ![Пример отображения иконки и имени драйвера](https://github.com/VedbeN/device-drivers/blob/master/icon_xmpl.png?raw=true "Пример отображения иконки и имени драйвера")
@@ -1710,7 +1569,7 @@ public class MyDeviceService extends Service {
                 return null;
         }
     }
-	
+
     public int createNewDevice(UsbDevice usbDevice) {
         int currentIndex = newDeviceIndex.getAndIncrement();
         instances.put(currentIndex, new MyDevice(getApplicationContext(), usbDevice));
@@ -1720,7 +1579,7 @@ public class MyDeviceService extends Service {
     public MyDevice getMyDevice(int instanceId) {
         return instances.get(instanceId);
     }
-	
+
     public void destroy(int instanceId) {
 		getMyDevice(instanceId).destroy();
         instances.remove(instanceId);
@@ -1771,7 +1630,7 @@ public class MyDriverManagerStub extends IUsbDriverManagerService.Stub {
 
 Метод `addUsbDevice` в `IUsbDriverManagerService` принимает на вход:
 
-1) `UsbDevice`, для которого он создан; 
+1) `UsbDevice`, для которого он создан;
 
 2) некоторый строковый идентификатор номера физического usb-порта (может потребоваться, например, если  требуется сохранить какие-либо настройки оборудования и восстановить их после перезагрузки терминала). В этот момент у приложения-драйвера уже есть `permission` для работы с этим устройством.
 
@@ -1780,7 +1639,7 @@ public class MyDriverManagerStub extends IUsbDriverManagerService.Stub {
 Метод `destroy` в `IUsbDriverManagerService` принимает на вход номер экземпляра драйвера. Вызов этого метода уведомляет приложение об отключении от устройства. В этот момент у приложения-драйвера уже нет `permission` для работы с этим устройством, само устройство уже может быть удалено из смарт-терминала.
 
 
-#### `IVirtualDriverManagerService.Stub` - класс для управления драйверами виртуальных устройств: 
+#### `IVirtualDriverManagerService.Stub` - класс для управления драйверами виртуальных устройств:
 подключение и отключение устройств происходят здесь. Требуется реализовать методы `addNewVirtualDevice`, `recreateNewVirtualDevice` и `destroy`.
 
 ```
@@ -1804,7 +1663,7 @@ public class MyDriverManagerStub extends IVirtualDriverManagerService.Stub {
     public void recreateNewVirtualDevice(int instanceId) throws RemoteException {
         myDeviceService.recreateNewVirtualDevice(instanceId);
     }
-	
+
     @Override
     public void destroy(int i) throws RemoteException {
         myDeviceService.destroy(instanceId);
@@ -1837,7 +1696,7 @@ public class MyScalesStub extends IScalesDriverService.Stub {
     public MyScalesStub(MyDeviceService myDeviceService) {
         this.myDeviceService = myDeviceService;
     }
-	
+
     @Override
     public Weight getWeight(int instanceId) throws RemoteException {
         return myDeviceService.getMyDevice(instanceId).getWeight();
@@ -1851,14 +1710,14 @@ public class MyScalesStub extends IScalesDriverService.Stub {
 Метод `getWeight` возвращает объект класса `ru.evotor.devices.drivers.scales.Weight`. В конструкторе требуется указать:
 
  1) `originalWeight` - считанный вес, в тех единицах измерения, в которых его вернули весы;
- 
+
  2) `multiplierToGrams` - коэффициент для приведения веса в граммы;
- 
+
  3) `supportStable` - поддерживают ли весы флаг стабильности;
- 
+
  4) `stable` - флаг стабильности взвешивания, если поддерживается. Иначе - любое значение.
 
- 
+
 #### `ICashDrawerDriverService.Stub` - класс для работы с конкретными экземплярами денежных ящиков.
 
 ```
@@ -1888,7 +1747,7 @@ import ru.evotor.devices.drivers.IPricePrinterDriverService;
 private class MyPricePrinterStub extends IPricePrinterDriverService.Stub {
 
     private MyDeviceService myDeviceService;
-	
+
     public MyPricePrinterStub(MyDeviceService myDeviceService) {
         this.myDeviceService = myDeviceService;
     }
@@ -1913,7 +1772,7 @@ private class MyPricePrinterStub extends IPricePrinterDriverService.Stub {
 Перед печатью группы ценников один раз вызывается метод `beforePrintPrices`, потом несколько раз может быть вызван метод `printPrice` (для каждого ценника), а после печати группы ценников - один раз `afterPrintPrices`.
 
 Все методы принимают на вход номер экземпляра драйвера. Метод `printPrice` также принимает на вход параметры печатаемого ценника: название, цену, штрихкод и код товара.
- 
+
 
 #### `IPaySystemDriverService.Stub` - класс для работы с конкретными экземплярами
 
@@ -2005,7 +1864,7 @@ public class MyPaySystemStub implements IPaySystemDriverService.Stub {
 Все методы принимают на вход номер экземпляра драйвера.
 
 Метод оплаты принимает на вход информацию об оплате (сумму), методы возврата и отмены дополнительно к этому принимают на вход `РРН` прошлой операции.
-   
+
 ### 5. После того, как описаны все классы для взаимодействия с инфраструктурой смарт-терминала, можно описать сам класс работы с оборудованием:
 
 Например, для USB-весов это выглядит следующим образом:
@@ -2027,7 +1886,7 @@ public class MyDevice implements IScales {
 
 	public void destroy(){
 	}
-	
+
     @Override
     public Weight getWeight() {
         //TODO Ваш код запроса веса
@@ -2039,23 +1898,19 @@ public class MyDevice implements IScales {
 
 Принтер ценников - `ru.evotor.devices.drivers.priceprinter.IPricePrinter`;
 
-### 6. Всё готово. 
+### 6. Всё готово.
 
 Загрузите приложение на смарт-терминал, чтобы работать с Вашим драйвером.
 
-
-
-------
-
-## Разработка драйверов для смарт-терминала Эвотор
-
-
+-----
 
 <a name="005"></a>
+## Разработка драйверов для смарт-терминала Эвотор
+
 #### 5. SDK для других устройств работающих с USB-оборудованием.
 
 Для написания приложения-драйвера для Эвотор, требуется выполнить несколько простых шагов.
-> Здесь и далее по тексту все имена констант указаны из ru.evotor.devices.drivers.Constants. 
+> Здесь и далее по тексту все имена констант указаны из ru.evotor.devices.drivers.Constants.
 
 ### 1. Подключить к своему проекту библиотеку для работы с оборудованием.
 
@@ -2080,7 +1935,7 @@ dependencies {
 
 ### 2. Определите внешний сервис в `AndroidManifest.xml` приложения.
 
-Для сервиса должен быть указан хотя бы один из интент-фильтров `INTENT_FILTER_DRIVER_MANAGER` или `INTENT_FILTER_VIRTUAL_DRIVER_MANAGER`. 
+Для сервиса должен быть указан хотя бы один из интент-фильтров `INTENT_FILTER_DRIVER_MANAGER` или `INTENT_FILTER_VIRTUAL_DRIVER_MANAGER`.
 
 Пример объявленного сервиса:
 
@@ -2112,7 +1967,7 @@ dependencies {
         android:value="SCALES" />
 </service>
 ```  
-  
+
 `INTENT_FILTER_DRIVER_MANAGER` - используется для драйверов, которые требуют для работы подключенное USB-оборудование. Вместе с этим необходимо указать для сервиса в `meta-data` характеристики VendorID и ProductID целевого устройства (десятичными числами):
 
 ```
@@ -2164,7 +2019,7 @@ dependencies {
 Можно указать сразу несколько категорий устройств следующим образом: `"SCALES|PRICEPRINTER|CASHDRAWER"`.
 
 Для работы с USB-оборудованием, которое не подпадает ни под одну из указанных категорий, ни один из этих интент-фильтров не указывается, а категорию устройства необходимо задать как `OTHER`.
-		
+
 В манифесте приложения у сервиса должны быть указаны `android:icon` и `android:label` - картинка и имя драйвера (показывается пользователю). Картинку желательно делать квадратной, png без фона.
 
 ![Пример отображения иконки и имени драйвера](https://github.com/VedbeN/device-drivers/blob/master/icon_xmpl.png?raw=true "Пример отображения иконки и имени драйвера")
@@ -2228,7 +2083,7 @@ public class MyDeviceService extends Service {
                 return null;
         }
     }
-	
+
     public int createNewDevice(UsbDevice usbDevice) {
         int currentIndex = newDeviceIndex.getAndIncrement();
         instances.put(currentIndex, new MyDevice(getApplicationContext(), usbDevice));
@@ -2238,7 +2093,7 @@ public class MyDeviceService extends Service {
     public MyDevice getMyDevice(int instanceId) {
         return instances.get(instanceId);
     }
-	
+
     public void destroy(int instanceId) {
 		getMyDevice(instanceId).destroy();
         instances.remove(instanceId);
@@ -2289,7 +2144,7 @@ public class MyDriverManagerStub extends IUsbDriverManagerService.Stub {
 
 Метод `addUsbDevice` в `IUsbDriverManagerService` принимает на вход:
 
-1) `UsbDevice`, для которого он создан; 
+1) `UsbDevice`, для которого он создан;
 
 2) некоторый строковый идентификатор номера физического usb-порта (может потребоваться, например, если  требуется сохранить какие-либо настройки оборудования и восстановить их после перезагрузки терминала). В этот момент у приложения-драйвера уже есть `permission` для работы с этим устройством.
 
@@ -2298,7 +2153,7 @@ public class MyDriverManagerStub extends IUsbDriverManagerService.Stub {
 Метод `destroy` в `IUsbDriverManagerService` принимает на вход номер экземпляра драйвера. Вызов этого метода уведомляет приложение об отключении от устройства. В этот момент у приложения-драйвера уже нет `permission` для работы с этим устройством, само устройство уже может быть удалено из смарт-терминала.
 
 
-#### `IVirtualDriverManagerService.Stub` - класс для управления драйверами виртуальных устройств: 
+#### `IVirtualDriverManagerService.Stub` - класс для управления драйверами виртуальных устройств:
 подключение и отключение устройств происходят здесь. Требуется реализовать методы `addNewVirtualDevice`, `recreateNewVirtualDevice` и `destroy`.
 
 ```
@@ -2322,7 +2177,7 @@ public class MyDriverManagerStub extends IVirtualDriverManagerService.Stub {
     public void recreateNewVirtualDevice(int instanceId) throws RemoteException {
         myDeviceService.recreateNewVirtualDevice(instanceId);
     }
-	
+
     @Override
     public void destroy(int i) throws RemoteException {
         myDeviceService.destroy(instanceId);
@@ -2355,7 +2210,7 @@ public class MyScalesStub extends IScalesDriverService.Stub {
     public MyScalesStub(MyDeviceService myDeviceService) {
         this.myDeviceService = myDeviceService;
     }
-	
+
     @Override
     public Weight getWeight(int instanceId) throws RemoteException {
         return myDeviceService.getMyDevice(instanceId).getWeight();
@@ -2369,14 +2224,14 @@ public class MyScalesStub extends IScalesDriverService.Stub {
 Метод `getWeight` возвращает объект класса `ru.evotor.devices.drivers.scales.Weight`. В конструкторе требуется указать:
 
  1) `originalWeight` - считанный вес, в тех единицах измерения, в которых его вернули весы;
- 
+
  2) `multiplierToGrams` - коэффициент для приведения веса в граммы;
- 
+
  3) `supportStable` - поддерживают ли весы флаг стабильности;
- 
+
  4) `stable` - флаг стабильности взвешивания, если поддерживается. Иначе - любое значение.
 
- 
+
 #### `ICashDrawerDriverService.Stub` - класс для работы с конкретными экземплярами денежных ящиков.
 
 ```
@@ -2406,7 +2261,7 @@ import ru.evotor.devices.drivers.IPricePrinterDriverService;
 private class MyPricePrinterStub extends IPricePrinterDriverService.Stub {
 
     private MyDeviceService myDeviceService;
-	
+
     public MyPricePrinterStub(MyDeviceService myDeviceService) {
         this.myDeviceService = myDeviceService;
     }
@@ -2431,7 +2286,7 @@ private class MyPricePrinterStub extends IPricePrinterDriverService.Stub {
 Перед печатью группы ценников один раз вызывается метод `beforePrintPrices`, потом несколько раз может быть вызван метод `printPrice` (для каждого ценника), а после печати группы ценников - один раз `afterPrintPrices`.
 
 Все методы принимают на вход номер экземпляра драйвера. Метод `printPrice` также принимает на вход параметры печатаемого ценника: название, цену, штрихкод и код товара.
- 
+
 
 #### `IPaySystemDriverService.Stub` - класс для работы с конкретными экземплярами
 
@@ -2523,7 +2378,7 @@ public class MyPaySystemStub implements IPaySystemDriverService.Stub {
 Все методы принимают на вход номер экземпляра драйвера.
 
 Метод оплаты принимает на вход информацию об оплате (сумму), методы возврата и отмены дополнительно к этому принимают на вход `РРН` прошлой операции.
-   
+
 ### 5. После того, как описаны все классы для взаимодействия с инфраструктурой смарт-терминала, можно описать сам класс работы с оборудованием:
 
 Например, для USB-весов это выглядит следующим образом:
@@ -2545,7 +2400,7 @@ public class MyDevice implements IScales {
 
 	public void destroy(){
 	}
-	
+
     @Override
     public Weight getWeight() {
         //TODO Ваш код запроса веса
@@ -2563,7 +2418,7 @@ public class MyDevice implements IScales {
 
 Банковский терминал - `ru.evotor.devices.drivers.paysystem.IPaySystem`.
 
-### 6. Всё готово. 
+### 6. Всё готово.
 
 Загрузите приложение на смарт-терминал, чтобы работать с Вашим драйвером.
 
@@ -2584,7 +2439,7 @@ public class MyDevice implements IScales {
 ## Разработка драйверов для смарт-терминала Эвотор
 
 Для написания приложения-драйвера для Эвотор, требуется выполнить несколько простых шагов.
-> Здесь и далее по тексту все имена констант указаны из ru.evotor.devices.drivers.Constants. 
+> Здесь и далее по тексту все имена констант указаны из ru.evotor.devices.drivers.Constants.
 
 ### 1. Подключить к своему проекту библиотеку для работы с оборудованием.
 
@@ -2609,7 +2464,7 @@ dependencies {
 
 ### 2. Определите внешний сервис в `AndroidManifest.xml` приложения.
 
-Для сервиса должен быть указан хотя бы один из интент-фильтров `INTENT_FILTER_DRIVER_MANAGER` или `INTENT_FILTER_VIRTUAL_DRIVER_MANAGER`. 
+Для сервиса должен быть указан хотя бы один из интент-фильтров `INTENT_FILTER_DRIVER_MANAGER` или `INTENT_FILTER_VIRTUAL_DRIVER_MANAGER`.
 
 Пример объявленного сервиса:
 
@@ -2641,7 +2496,7 @@ dependencies {
         android:value="SCALES" />
 </service>
 ```  
-  
+
 `INTENT_FILTER_DRIVER_MANAGER` - используется для драйверов, которые требуют для работы подключенное USB-оборудование. Вместе с этим необходимо указать для сервиса в `meta-data` характеристики VendorID и ProductID целевого устройства (десятичными числами):
 
 ```
@@ -2693,7 +2548,7 @@ dependencies {
 Можно указать сразу несколько категорий устройств следующим образом: `"SCALES|PRICEPRINTER|CASHDRAWER"`.
 
 Для работы с USB-оборудованием, которое не подпадает ни под одну из указанных категорий, ни один из этих интент-фильтров не указывается, а категорию устройства необходимо задать как `OTHER`.
-		
+
 В манифесте приложения у сервиса должны быть указаны `android:icon` и `android:label` - картинка и имя драйвера (показывается пользователю). Картинку желательно делать квадратной, png без фона.
 
 ![Пример отображения иконки и имени драйвера](https://github.com/VedbeN/device-drivers/blob/master/icon_xmpl.png?raw=true "Пример отображения иконки и имени драйвера")
@@ -2757,7 +2612,7 @@ public class MyDeviceService extends Service {
                 return null;
         }
     }
-	
+
     public int createNewDevice(UsbDevice usbDevice) {
         int currentIndex = newDeviceIndex.getAndIncrement();
         instances.put(currentIndex, new MyDevice(getApplicationContext(), usbDevice));
@@ -2767,7 +2622,7 @@ public class MyDeviceService extends Service {
     public MyDevice getMyDevice(int instanceId) {
         return instances.get(instanceId);
     }
-	
+
     public void destroy(int instanceId) {
 		getMyDevice(instanceId).destroy();
         instances.remove(instanceId);
@@ -2818,7 +2673,7 @@ public class MyDriverManagerStub extends IUsbDriverManagerService.Stub {
 
 Метод `addUsbDevice` в `IUsbDriverManagerService` принимает на вход:
 
-1) `UsbDevice`, для которого он создан; 
+1) `UsbDevice`, для которого он создан;
 
 2) некоторый строковый идентификатор номера физического usb-порта (может потребоваться, например, если  требуется сохранить какие-либо настройки оборудования и восстановить их после перезагрузки терминала). В этот момент у приложения-драйвера уже есть `permission` для работы с этим устройством.
 
@@ -2827,7 +2682,7 @@ public class MyDriverManagerStub extends IUsbDriverManagerService.Stub {
 Метод `destroy` в `IUsbDriverManagerService` принимает на вход номер экземпляра драйвера. Вызов этого метода уведомляет приложение об отключении от устройства. В этот момент у приложения-драйвера уже нет `permission` для работы с этим устройством, само устройство уже может быть удалено из смарт-терминала.
 
 
-#### `IVirtualDriverManagerService.Stub` - класс для управления драйверами виртуальных устройств: 
+#### `IVirtualDriverManagerService.Stub` - класс для управления драйверами виртуальных устройств:
 подключение и отключение устройств происходят здесь. Требуется реализовать методы `addNewVirtualDevice`, `recreateNewVirtualDevice` и `destroy`.
 
 ```
@@ -2851,7 +2706,7 @@ public class MyDriverManagerStub extends IVirtualDriverManagerService.Stub {
     public void recreateNewVirtualDevice(int instanceId) throws RemoteException {
         myDeviceService.recreateNewVirtualDevice(instanceId);
     }
-	
+
     @Override
     public void destroy(int i) throws RemoteException {
         myDeviceService.destroy(instanceId);
@@ -2884,7 +2739,7 @@ public class MyScalesStub extends IScalesDriverService.Stub {
     public MyScalesStub(MyDeviceService myDeviceService) {
         this.myDeviceService = myDeviceService;
     }
-	
+
     @Override
     public Weight getWeight(int instanceId) throws RemoteException {
         return myDeviceService.getMyDevice(instanceId).getWeight();
@@ -2898,14 +2753,14 @@ public class MyScalesStub extends IScalesDriverService.Stub {
 Метод `getWeight` возвращает объект класса `ru.evotor.devices.drivers.scales.Weight`. В конструкторе требуется указать:
 
  1) `originalWeight` - считанный вес, в тех единицах измерения, в которых его вернули весы;
- 
+
  2) `multiplierToGrams` - коэффициент для приведения веса в граммы;
- 
+
  3) `supportStable` - поддерживают ли весы флаг стабильности;
- 
+
  4) `stable` - флаг стабильности взвешивания, если поддерживается. Иначе - любое значение.
 
- 
+
 #### `ICashDrawerDriverService.Stub` - класс для работы с конкретными экземплярами денежных ящиков.
 
 ```
@@ -2935,7 +2790,7 @@ import ru.evotor.devices.drivers.IPricePrinterDriverService;
 private class MyPricePrinterStub extends IPricePrinterDriverService.Stub {
 
     private MyDeviceService myDeviceService;
-	
+
     public MyPricePrinterStub(MyDeviceService myDeviceService) {
         this.myDeviceService = myDeviceService;
     }
@@ -2960,7 +2815,7 @@ private class MyPricePrinterStub extends IPricePrinterDriverService.Stub {
 Перед печатью группы ценников один раз вызывается метод `beforePrintPrices`, потом несколько раз может быть вызван метод `printPrice` (для каждого ценника), а после печати группы ценников - один раз `afterPrintPrices`.
 
 Все методы принимают на вход номер экземпляра драйвера. Метод `printPrice` также принимает на вход параметры печатаемого ценника: название, цену, штрихкод и код товара.
- 
+
 
 #### `IPaySystemDriverService.Stub` - класс для работы с конкретными экземплярами
 
@@ -3052,7 +2907,7 @@ public class MyPaySystemStub implements IPaySystemDriverService.Stub {
 Все методы принимают на вход номер экземпляра драйвера.
 
 Метод оплаты принимает на вход информацию об оплате (сумму), методы возврата и отмены дополнительно к этому принимают на вход `РРН` прошлой операции.
-   
+
 ### 5. После того, как описаны все классы для взаимодействия с инфраструктурой смарт-терминала, можно описать сам класс работы с оборудованием:
 
 Например, для USB-весов это выглядит следующим образом:
@@ -3074,7 +2929,7 @@ public class MyDevice implements IScales {
 
 	public void destroy(){
 	}
-	
+
     @Override
     public Weight getWeight() {
         //TODO Ваш код запроса веса
@@ -3092,6 +2947,6 @@ public class MyDevice implements IScales {
 
 Банковский терминал - `ru.evotor.devices.drivers.paysystem.IPaySystem`.
 
-### 6. Всё готово. 
+### 6. Всё готово.
 
 Загрузите приложение на смарт-терминал, чтобы работать с Вашим драйвером.
