@@ -93,10 +93,10 @@ dependencies {
 ```
 <meta-data
     android:name="device_categories"
-    android:value="CASH_DRAWER" />
+    android:value="CASHDRAWER" />
 ```
 
-`CASH_DRAWER` - для денежных ящиков;
+`CASHDRAWER` - для денежных ящиков;
 
 Можно указать сразу несколько категорий устройств следующим образом: `"SCALES|PRICEPRINTER|CASHDRAWER"`.
 
